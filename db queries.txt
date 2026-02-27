@@ -1,0 +1,103 @@
+========================================
+TASK MANAGER – DATABASE QUERIES (ORACLE)
+
+CREATE USERS TABLE
+
+CREATE TABLE users (
+id NUMBER PRIMARY KEY,
+name VARCHAR2(100),
+email VARCHAR2(100) UNIQUE,
+phone VARCHAR2(15),
+password VARCHAR2(255)
+);
+
+CREATE TASKS TABLE
+
+CREATE TABLE tasks (
+id NUMBER PRIMARY KEY,
+task VARCHAR2(255),
+due_date DATE,
+status VARCHAR2(20) DEFAULT 'Yet to Start',
+user_id NUMBER,
+CONSTRAINT fk_user
+FOREIGN KEY (user_id)
+REFERENCES users(id)
+ON DELETE CASCADE
+);
+
+CREATE USER SEQUENCE
+
+CREATE SEQUENCE user_seq
+START WITH 1
+INCREMENT BY 1
+NOCACHE;
+
+CREATE TASK SEQUENCE
+
+CREATE SEQUENCE task_seq
+START WITH 1
+INCREMENT BY 1
+NOCACHE;
+
+REGISTER USER (INSERT QUERY)
+
+INSERT INTO users (id, name, email, phone, password)
+VALUES (user_seq.NEXTVAL, :1, :2, :3, :4);
+
+LOGIN USER (SELECT QUERY)
+
+SELECT id
+FROM users
+WHERE email = :1 AND password = :2;
+
+GET USER NAME (FOR HOME PAGE)
+
+SELECT name
+FROM users
+WHERE id = :1;
+
+ADD TASK
+
+INSERT INTO tasks (id, task, due_date, user_id)
+VALUES (task_seq.NEXTVAL, :1, TO_DATE(:2, 'YYYY-MM-DD'), :3);
+
+GET TASKS (FOR LOGGED IN USER)
+
+SELECT id, task, due_date, status
+FROM tasks
+WHERE user_id = :1
+ORDER BY id DESC;
+
+UPDATE TASK STATUS
+
+UPDATE tasks
+SET status = :1
+WHERE id = :2 AND user_id = :3;
+
+DELETE TASK
+
+DELETE FROM tasks
+WHERE id = :1 AND user_id = :2;
+
+VIEW ALL USERS (FOR TESTING)
+
+SELECT * FROM users;
+
+VIEW ALL TASKS (FOR TESTING)
+
+SELECT * FROM tasks;
+
+VIEW TASKS OF PARTICULAR USER
+
+SELECT * FROM tasks
+WHERE user_id = 1;
+
+JOIN USERS AND TASKS
+
+SELECT u.name, t.task, t.due_date, t.status
+FROM users u
+JOIN tasks t
+ON u.id = t.user_id;
+
+========================================
+END OF DATABASE QUERIES

@@ -6,7 +6,8 @@ import hashlib
 app = Flask(__name__)
 CORS(app)
 
-app.secret_key = "supersecretkey"   # Needed for session
+app.secret_key = "supersecretkey"
+app.config['SESSION_PERMANENT'] = False
 
 # ===== ORACLE CONNECTION =====
 connection = oracledb.connect(
@@ -24,7 +25,12 @@ cursor = connection.cursor()
 def home():
     if "user_id" not in session:
         return redirect("/login")
-    return render_template("index.html")
+
+    # Get username to display
+    cursor.execute("SELECT name FROM users WHERE id = :1", (session["user_id"],))
+    user = cursor.fetchone()
+
+    return render_template("index.html", username=user[0])
 
 
 # ==============================
@@ -91,7 +97,7 @@ def login():
 # ==============================
 @app.route("/logout")
 def logout():
-    session.pop("user_id", None)
+    session.clear()
     return redirect("/login")
 
 
@@ -163,7 +169,7 @@ def update_status(id):
     WHERE id = :2 AND user_id = :3
     """
 
-    cursor.execute(query, (
+    cursor.execute((query), (
         data["status"],
         id,
         session["user_id"]
